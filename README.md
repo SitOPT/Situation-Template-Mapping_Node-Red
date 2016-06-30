@@ -38,6 +38,6 @@ Steps to generate a Java data model from the XSD file (Java JDK has to be instal
 
 1) only once: Add C:/Program Files/Java/jdk../bin to system path variable
 
-2) in the repository Situation-Template-Schema (https://github.com/SitOPT/Situation-Template-Schema) in folder "situation_template_mapping" execute `xjc -d src/ -p situationtemplate.model situation_template_draft01.xsd` in the command line to generate the JAXB classes and move them to the folder src/situationtemplate/model
+2) in the repository Situation-Template-Schema (https://github.com/SitOPT/Situation-Template-Schema) execute `xjc -d src/ -p situationtemplate.model situation_template_draft01.xsd` in the command line to generate the JAXB classes and move them to the folder src/situationtemplate/model
 
 (Optional: You can call "ant build" in the Situation-Template-Schema repository to export the JAXB classes to a jar file, which can be included in the mapping java project)
