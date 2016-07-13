@@ -133,6 +133,12 @@ public class ConditionNodeMapper {
                     } else if (parent.getParentID() instanceof TOperationNode) {
                         connections.add(situationTemplate.getId() + "." + ((TOperationNode) parent.getParentID()).getId());
                     } else if (parent.getParentID() instanceof TSituationNode) {
+                        JSONObject nullNode = NodeREDUtils.createNodeREDNode(situationTemplate.getName() + ".nullNode", "passthrough", "function", Integer.toString(900), Integer.toString(50), situationTemplate.getId());
+                        nullNode.put("func", Nodes.getNULLNode(object, situationTemplate.getId(), sensorMapping));
+                        nullNode.put("outputs", "1");
+
+                        connections.add(situationTemplate.getName() + ".nullNode");
+
                         JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500", situationTemplate.getId());
                         debugNode.put("name", situationTemplate.getName());
                         nodeREDModel.add(debugNode);
@@ -161,7 +167,12 @@ public class ConditionNodeMapper {
                         httpWires.add(httpConn);
                         httpNode.put("wires", httpWires);
 
-                        connections.add(httpNode.get("id"));
+                        JSONArray cons = new JSONArray();
+                        cons.add(httpNode.get("id"));
+                        JSONArray wires = new JSONArray();
+                        wires.add(cons);
+                        nullNode.put("wires", wires);
+                        nodeREDModel.add(nullNode);
 
                         nodeREDModel.add(httpNode);
                     }

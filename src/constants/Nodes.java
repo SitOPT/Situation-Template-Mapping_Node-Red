@@ -13,7 +13,7 @@ public class Nodes {
 	private final static String compareString = "var curr = parseInt(JSON.parse(msg.payload).payload.value);\n"
 	        + "msg.situation = {\n"
 	        + "  'sensor':'%s', 'value':curr,\n"
-			+ "  'timestamp':new Date().getTime(),\n"
+			+ "  'timestamp':\"\" + new Date().getTime(),\n"
 			+ "  'quality':1"
 			+ "};\n"
 			+ "if (curr %s %s) {\n"
@@ -21,12 +21,12 @@ public class Nodes {
 			+ "} else {\n"
 			+ "  msg.payload = false;\n"
 			+ "}\n\n"
-                        + "msg.headers = {\"Content-Type\": \"application/json\"};\n"
+			+ "msg.headers = {\"Content-Type\": \"application/json\"};\n"
 			+ "return msg;";
 	private final static String statusCodeString = "var curr = parseInt(JSON.parse(msg.payload).value);\n"
 	        + "msg.situation = {\n"
-	        + "  'sensor':'%s', 'value':curr,\n"
-			+ "  'timestamp':new Date().getTime(),\n"
+	        + "  'sensor':'%s', 'values':[curr],\n"
+			+ "  'timestamp':\"\" + new Date().getTime(),\n"
 			+ "  'quality':1"
 			+ "};\n\n"
 			+ "if (msg.statusCode %s %s) {\n"
@@ -57,12 +57,12 @@ public class Nodes {
 			+ "  if (returnValue) {\n"
 			+ "    var array = [%s];\n"
 			+ "    for (var index in array) {\n"
-			+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':new Date().getTime(), 'situationtemplate':'%s' , 'occured':true, 'sensorvalues': values});\n"
+			+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':true, 'sensorvalues': values});\n"
 			+ "    }\n"
 			+ "  } else {\n"
 			+ "    var array = [%s];\n"
 			+ "    for (var index in array) {\n"
-			+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':new Date().getTime(), 'situationtemplate':'%s' , 'occured':false, 'sensorvalues': values});\n"
+			+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':false, 'sensorvalues': values});\n"
 			+ "    }\n"
 			+ "  }\n"
 			+ "  context.values = null;\n"
@@ -82,11 +82,53 @@ public class Nodes {
 			+ "} else {\n"
 			+ "  return null;\n"
 			+ "}";
+	private final static String nullNode =
+					  "context.values = context.values || [];\n"
+					+ "context.values.push(JSON.parse(msg.payload));\n\n"
+					+ "context.sensorValues = context.sensorValues || [];\n"
+					+ "context.sensorValues.push(msg.situation);\n\n"
+					+ "var inputs = 1;\n"
+					+ "if (context.values.length == inputs) {\n"
+					+ "  msg.situation = [];\n"
+					+ "  var returnValue = true;\n"
+					+ "  var counter = 0;\n"
+					+ "  var situations = [];\n"
+					+ "  var values = [];\n"
+					+ "  values.push(context.sensorValues[0]);\n"
+					+ "  returnValue = JSON.parse(msg.payload);\n\n"
+					+ "  if (returnValue) {\n"
+					+ "    var array = [%s];\n"
+					+ "    for (var index in array) {\n"
+					+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':true, 'sensorvalues': values});\n"
+					+ "    }\n"
+					+ "  } else {\n"
+					+ "    var array = [%s];\n"
+					+ "    for (var index in array) {\n"
+					+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':false, 'sensorvalues': values});\n"
+					+ "    }\n"
+					+ "  }\n"
+					+ "  context.values = null;\n"
+					+ "  context.sensorValues = null;\n\n"
+					+ "  var jsonStr = '{\"situation\": []}';\n"
+					+ "  var obj = JSON.parse(jsonStr);\n\n"
+					+ "  for (var i = 0; i < msg.situation.length; i++) {\n"
+					+ "    obj.situation.push(msg.situation[i]);\n"
+					+ "  }\n\n"
+					+ "  var msgs = [];\n"
+					+ "  for (var i = 0; i < situations.length; i++) {\n"
+					+ "    msg.payload = situations[i];\n"
+					+ "    msgs.push(msg);\n"
+					+ "  }\n"
+					+ "  msgs[0].headers = {\"Content-Type\": \"application/json\"};\n"
+					+ "  return msgs[0];\n"
+					+ "} else {\n"
+					+ "  return null;\n"
+					+ "}";
 	private final static String betweenString = "var curr = parseInt(JSON.parse(msg.payload).value);\n"
 	        + "msg.situation = {\n"
 	        + "  'sensor':'%s',\n"
 			+ "  'value':curr,\n"
-			+ "  'timestamp':new Date().getTime(),\n"
+			+ "  'timestamp':\"\" + new Date().getTime(),\n"
 			+ "  'quality':1\n"
 			+ "};\n"
 			+ "if (%s < msg.statusCode && msg.statusCode < %s) {\n"
@@ -118,12 +160,12 @@ public class Nodes {
             + "if (returnValue) {\n"
             + "  var array = [%s];"
             + "  for (var index in array) {\n"
-            + "    msg.situation.push({'thing':array[index], 'timestamp':new Date().getTime(), 'situationtemplate':'A0' , 'occured':true});\n"
+            + "    msg.situation.push({'thing':array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'A0' , 'occured':true});\n"
             + "  }\n"
             + "} else {\n"
             + "  var array = [%s];"
             + "  for (var index in array) {\n"
-            + "    msg.situation.push({'thing':array[index], 'timestamp':new Date().getTime(), 'situationtemplate':'A0' , 'occured':false});\n"
+            + "    msg.situation.push({'thing':array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'A0' , 'occured':false});\n"
             + "  }\n"
             + "}\n\n"
             + "if (context.values.length > 1000) {\n"
@@ -217,10 +259,10 @@ public class Nodes {
 		
 		return String.format(betweenString, sensorId, condValue1, condValue2);
 	}
-	
+
 	/**
 	 * Generates the JavaScript implementation of the "AND" node
-	 * 
+	 *
 	 * @return the AND Node in JavaScript
 	 */
 	public static String getANDNode(String numberOfInputs, String objectID, String situationTemplateID, ObjectIdSensorIdMapping mapping) {
@@ -228,11 +270,24 @@ public class Nodes {
 				+ "      counter++;\n"
 				+ "    }\n"
 				+ "    returnValue = counter == " + numberOfInputs + ";\n";
-        String things = mapping.getObjects();
-        if (things.equals("")) {
-            things = "\'" + objectID + "\'";
-        }
-        return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, things, situationTemplateID);
+		String things = mapping.getObjects();
+		if (things.equals("")) {
+			things = "\'" + objectID + "\'";
+		}
+		return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, things, situationTemplateID);
+	}
+
+	/**
+	 * Generates the JavaScript implementation of a "null" node which simply passes one condition through
+	 *
+	 * @return the null Node in JavaScript
+	 */
+	public static String getNULLNode(String objectID, String situationTemplateID, ObjectIdSensorIdMapping mapping) {
+		String things = mapping.getObjects();
+		if (things.equals("")) {
+			things = "\'" + objectID + "\'";
+		}
+		return String.format(nullNode, things, situationTemplateID, things, situationTemplateID);
 	}
 	
 	/**
