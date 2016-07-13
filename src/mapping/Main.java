@@ -116,7 +116,7 @@ public class Main {
 				JAXBElement<TSituationTemplate> root;
 				if (args[1].toLowerCase().endsWith(".xml")) {
 					File file = new File(args[1]);
-	                root = u.unmarshal(new StreamSource(file), TSituationTemplate.class);
+					root = u.unmarshal(new StreamSource(file), TSituationTemplate.class);
 				} else {
 					String xml = args[1].replace("\n", "").replace("\r", "").replace("\t", "").replace("\\n", "").replace("\\r", "").replace("\\t", "");
 					root = u.unmarshal(new StreamSource(new StringReader(xml)), TSituationTemplate.class);
