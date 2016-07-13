@@ -11,12 +11,7 @@ import org.json.simple.parser.ParseException;
 
 import constants.Nodes;
 import constants.Properties;
-import situationtemplate.model.TConditionNode;
-import situationtemplate.model.TContextNode;
-import situationtemplate.model.TOperationNode;
-import situationtemplate.model.TParent;
-import situationtemplate.model.TSituationTemplate;
-import situationtemplate.model.TTimeNode;
+import situationtemplate.model.*;
 import utils.NodeREDUtils;
 
 
@@ -44,6 +39,10 @@ public class ConditionNodeMapper {
 
         String xCoordinate = "600";
         int yCoordinate = 50;
+
+        if (situationTemplate.getConditionNode().size() > 1 && situationTemplate.getOperationNode().size() == 0) {
+            throw new Error("OperationNodes are only omittable if there is only one ConditionNode.");
+        }
 
         for (TConditionNode node : situationTemplate.getConditionNode()) {
             ArrayList<String> objects = new ArrayList<>();
@@ -133,6 +132,38 @@ public class ConditionNodeMapper {
                         connections.add(situationTemplate.getId() + "." + ((TConditionNode) parent.getParentID()).getId());
                     } else if (parent.getParentID() instanceof TOperationNode) {
                         connections.add(situationTemplate.getId() + "." + ((TOperationNode) parent.getParentID()).getId());
+                    } else if (parent.getParentID() instanceof TSituationNode) {
+                        JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500", situationTemplate.getId());
+                        debugNode.put("name", situationTemplate.getName());
+                        nodeREDModel.add(debugNode);
+
+                        // create the corresponding NodeRED JSON node
+                        JSONObject httpNode = NodeREDUtils.createNodeREDNode(NodeREDUtils.generateNodeREDId(),
+                                "situation", "http request", Integer.toString(200), Integer.toString(200), situationTemplate.getId());
+                        httpNode.put("method", "POST");
+
+                        StringBuilder builder = new StringBuilder();
+                        builder.append(Properties.getSituationProtocol());
+                        builder.append("://");
+                        builder.append(Properties.getSituationServer());
+                        builder.append(":");
+                        builder.append(Properties.getSituationPort());
+                        if (!Properties.getSituationPath().startsWith("/")) {
+                            builder.append("/");
+                        }
+                        builder.append(Properties.getSituationPath());
+
+                        httpNode.put("url", builder.toString());
+
+                        JSONArray httpConn = new JSONArray();
+                        JSONArray httpWires = new JSONArray();
+                        httpConn.add(debugNode.get("id"));
+                        httpWires.add(httpConn);
+                        httpNode.put("wires", httpWires);
+
+                        connections.add(httpNode.get("id"));
+
+                        nodeREDModel.add(httpNode);
                     }
                 }
 
