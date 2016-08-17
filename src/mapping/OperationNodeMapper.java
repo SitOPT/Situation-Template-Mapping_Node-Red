@@ -60,7 +60,7 @@ public class OperationNodeMapper {
                                 for (TParent sparent : snode.getParent()) {
                                     if (((TConditionNode) sparent.getParentID()).getId().equals(node.getId())) {
                                         for (@SuppressWarnings("unused")
-                                        String object : sensorMapping.getObjects(snode.getId())) {
+                                        String object : sensorMapping.getObjects(snode)) {
                                             children++;
                                         }
                                     }

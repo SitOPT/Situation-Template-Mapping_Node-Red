@@ -113,7 +113,7 @@ public class NodeREDUtils {
 
 		// TODO
 			for (TContextNode sensorNode : situationTemplate.getContextNode()) {
-				for (String object : sensorMapping.getObjects(sensorNode.getId())) {
+				for (String object : sensorMapping.getObjects(sensorNode)) {
 					String sensorNodeId = sensorNode.getId() + object;
 					connections.add(situationTemplate.getId() + "." + sensorNodeId);
 				}

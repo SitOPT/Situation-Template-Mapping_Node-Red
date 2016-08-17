@@ -50,7 +50,7 @@ public class ConditionNodeMapper {
                 for (TParent parent : cnode.getParent()) {
                     if ((parent.getParentID() instanceof TConditionNode)
                             && ((TConditionNode) parent.getParentID()).getId().equals(node.getId())) {
-                        for (String o : sensorMapping.getObjects(cnode.getId())) {
+                        for (String o : sensorMapping.getObjects(cnode)) {
                             objects.add(o);
                         }
                     }

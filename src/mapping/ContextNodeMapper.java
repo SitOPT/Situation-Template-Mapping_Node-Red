@@ -37,8 +37,7 @@ public class ContextNodeMapper {
 	 *            the situation template JAXB node
 	 * @param nodeREDModel
 	 *            the Node-RED flow as JSON
-	 * @param objectID
-	 *            the URL of the machine
+	 * @param sensorMapping
 	 *
 	 * @return the mapped JSON model
 	 */
@@ -51,7 +50,7 @@ public class ContextNodeMapper {
 		// the z coordinate is used to assign the nodes to a corresponding sheet
 		String zCoordinate = situationTemplate.getId();
 
-		String url = "";
+		String url;
 		StringBuilder builder = new StringBuilder();
 		builder.append(Properties.getResourceProtocol());
 		builder.append("://");
@@ -71,7 +70,7 @@ public class ContextNodeMapper {
 			}
 			// create the corresponding NodeRED JSON node
 			ArrayList<JSONObject> nodeREDNodes = new ArrayList<>();
-			String[] objects = sensorMapping.getObjects(sensorNode.getId());
+			String[] objects = sensorMapping.getObjects(sensorNode);
 			for (String object : objects) {
 				String name = sensorNode.getName() == null ? sensorNode.getType() : sensorNode.getName();
 				JSONObject nodeREDNode = NodeREDUtils.createNodeREDNode(
@@ -79,33 +78,16 @@ public class ContextNodeMapper {
 						name + " for " + object, TYPE, Integer.toString(xCoordinate),
 						Integer.toString(yCoordinate), zCoordinate);
 				nodeREDNode.put("method", METHOD);
-				nodeREDNode.put("url", String.format(sensorURL, object));
+				if (sensorNode.getInputType().toLowerCase().equals("static")) {
+					nodeREDNode.put("url", sensorNode.getMeasureName() + "/rmp/sensordata/" + sensorNode.getType() + "/" + sensorNode.getName());
+				} else if (sensorNode.getInputType().toLowerCase().equals("sensor")) {
+					nodeREDNode.put("url", String.format(sensorURL, object));
+				}
 				nodeREDNodes.add(nodeREDNode);
 				yCoordinate += 100;
 
-				if (!sensorNode.getInputType().toLowerCase().equals("sensor")) {
-					URL u = null;
-					try {
-						u = new URL(Properties.getSituationServer() + ":" + Properties.getSituationPort() + "/situations/changes");
-						HttpURLConnection conn = (HttpURLConnection) u.openConnection();
-						String s = "{\"SitTempID\":\"%s\",\"ThingID\":\"%s\",\"CallbackURL\":\"%s\",\"once\":\"false\"}";
-						s = String.format(s,
-								sensorMapping.getObjects(sensorNode.getId())[0].split(".")[1],
-								sensorMapping.getObjects(sensorNode.getId())[0].split(".")[0],
-								Properties.getRemoteIp(Properties.getSituationServer()));
-						s = URLEncoder.encode(s,
-								java.nio.charset.StandardCharsets.UTF_8.toString());
-						conn.setDoOutput(true);
-						conn.setRequestMethod("POST");
-						conn.setRequestProperty("Content-Type", "application/json");
-						conn.setRequestProperty("Content-Length", String.valueOf(s.length()));
-						OutputStream stream = conn.getOutputStream();
-						System.out.println(s);
-						stream.write(s.getBytes());
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+				if (sensorNode.getInputType().toLowerCase().equals("static")) {
+
 				}
 
 				// now connect the node to the flow

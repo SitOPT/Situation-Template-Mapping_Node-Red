@@ -51,10 +51,14 @@ public class ObjectIdSensorIdMapping {
 
 	/**
 	 * Returns the sensors for a sensor id
-	 * @param sensor the sensor id whose sensors should be found
+	 * @param contextNode the sensor whose sensors should be found
 	 * @return
      */
-	public String[] getObjects(String sensor) {
+	public String[] getObjects(TContextNode contextNode) {
+		String sensor = contextNode.getId();
+		if (contextNode.getInputType().toLowerCase().equals("static")) {
+			return new String[] { contextNode.getType() };
+		}
 		if (json != null) {
 			JSONArray array = (JSONArray) json.get(sensor);
 			ArrayList<String> values = new ArrayList<>();
@@ -76,7 +80,7 @@ public class ObjectIdSensorIdMapping {
 			StringBuilder builder = new StringBuilder();
 			HashSet<String> set = new HashSet<>();
 			for (TContextNode node : sensors) {
-				for (String o : getObjects(node.getId())) {
+				for (String o : getObjects(node)) {
 					if (!set.contains(o)) {
 						set.add(o);
 					}
