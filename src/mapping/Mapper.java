@@ -44,26 +44,27 @@ public class Mapper {
 	public void map(boolean doOverwrite, ObjectIdSensorIdMapping sensorMapping, long timestamp, boolean debug) {
 		try {
 
-			JSONArray nodeREDModel = new JSONArray();
+			JSONObject nodeREDModel = new JSONObject();
+			JSONArray nodes = new JSONArray();
 			
-			JSONObject debugNode = NodeREDUtils.generateDebugNode("100", "100", situationTemplate.getId());
+			JSONObject debugNode = NodeREDUtils.generateDebugNode("100", "100");
 			debugNode.put("name", "begin" + situationTemplate.getId());
 			
-			nodeREDModel.add(debugNode);
+			nodes.add(debugNode);
 			
 			// each NodeRED flow needs an inject input node, which is generated and added at this point
-			JSONObject input = NodeREDUtils.generateInputNode(situationTemplate.getId(), situationTemplate, debugNode, sensorMapping);
-			nodeREDModel.add(input);
+			JSONObject input = NodeREDUtils.generateInputNode(situationTemplate, debugNode, sensorMapping);
+			nodes.add(input);
 
 			// first, map all the operation nodes, then map the other nodes
 			OperationNodeMapper lnm = new OperationNodeMapper();
-			lnm.mapOperationNodes(situationTemplate, nodeREDModel, sensorMapping);
+			lnm.mapOperationNodes(situationTemplate, nodes, sensorMapping);
 			
 			ContextNodeMapper snm = new ContextNodeMapper();
-			nodeREDModel = snm.mapContextNodes(situationTemplate, nodeREDModel, sensorMapping, debug);
+			snm.mapContextNodes(situationTemplate, nodes, sensorMapping, debug);
 			
 			ConditionNodeMapper nm = new ConditionNodeMapper();
-			JSONArray finalModel = nm.mapConditionNodes(situationTemplate, nodeREDModel, debug, sensorMapping);
+			nm.mapConditionNodes(situationTemplate, nodes, debug, sensorMapping);
 						
 			// write the JSON file (just for debug reasons), remember to change the path when using this method
 			//IOUtils.writeJSONFile(finalModel, situationTemplate);
@@ -75,11 +76,13 @@ public class Mapper {
 //			 deploy the flow to NodeRED
 			
 //			for (int i = 0; i < 10; i++) {
-				IOUtils.deployToNodeRED(finalModel, situationTemplate, doOverwrite);
+			nodeREDModel.put("nodes", nodes);
+			String deployId = IOUtils.deployToNodeRED(nodeREDModel, situationTemplate, sensorMapping, doOverwrite);
 //			}
 			
 			Date endDate = new Date();
 			System.out.println("Deploy Time: " + (begin-endDate.getTime()));
+			System.out.println(deployId);
 		} catch (ParseException e) {
 			System.err.println("Could not parse JSON, an error occurred.");
 			e.printStackTrace();

@@ -60,8 +60,8 @@ public class ConditionNodeMapper {
             for (String object : objects) {
                 List<String> conditionValues = node.getCondValues().getValue();
                 JSONObject nodeREDNode = NodeREDUtils.createNodeREDNode(
-                        situationTemplate.getId() + "." + node.getId() + object, node.getName() + " for " + object,
-                        "function", xCoordinate, Integer.toString(yCoordinate), situationTemplate.getId());
+                        object + "." + situationTemplate.getName() + "." + node.getName(), node.getName() + " for " + object,
+                        "function", xCoordinate, Integer.toString(yCoordinate));
 
                 String sensorId = "";
 
@@ -129,23 +129,23 @@ public class ConditionNodeMapper {
                 // add parents
                 for (TParent parent : node.getParent()) {
                     if (parent.getParentID() instanceof TConditionNode) {
-                        connections.add(situationTemplate.getId() + "." + ((TConditionNode) parent.getParentID()).getId());
+                        connections.add(object + "." + situationTemplate.getName() + "." + ((TConditionNode) parent.getParentID()).getName());
                     } else if (parent.getParentID() instanceof TOperationNode) {
-                        connections.add(situationTemplate.getId() + "." + ((TOperationNode) parent.getParentID()).getId());
+                        connections.add(object + "." + situationTemplate.getName() + "." + ((TOperationNode) parent.getParentID()).getName());
                     } else if (parent.getParentID() instanceof TSituationNode) {
-                        JSONObject nullNode = NodeREDUtils.createNodeREDNode(situationTemplate.getName() + ".nullNode", "passthrough", "function", Integer.toString(900), Integer.toString(50), situationTemplate.getId());
+                        JSONObject nullNode = NodeREDUtils.createNodeREDNode(situationTemplate.getName() + ".nullNode", "passthrough", "function", Integer.toString(900), Integer.toString(50));
                         nullNode.put("func", Nodes.getNULLNode(object, situationTemplate.getId(), sensorMapping));
                         nullNode.put("outputs", "1");
 
                         connections.add(situationTemplate.getName() + ".nullNode");
 
-                        JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500", situationTemplate.getId());
+                        JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500");
                         debugNode.put("name", situationTemplate.getName());
                         nodeREDModel.add(debugNode);
 
                         // create the corresponding NodeRED JSON node
                         JSONObject httpNode = NodeREDUtils.createNodeREDNode(NodeREDUtils.generateNodeREDId(),
-                                "situation", "http request", Integer.toString(200), Integer.toString(200), situationTemplate.getId());
+                                "situation", "http request", Integer.toString(200), Integer.toString(200));
                         httpNode.put("method", "POST");
 
                         StringBuilder builder = new StringBuilder();
@@ -162,16 +162,12 @@ public class ConditionNodeMapper {
                         httpNode.put("url", builder.toString());
 
                         JSONArray httpConn = new JSONArray();
-                        JSONArray httpWires = new JSONArray();
                         httpConn.add(debugNode.get("id"));
-                        httpWires.add(httpConn);
-                        httpNode.put("wires", httpWires);
+                        httpNode.put("wires", httpConn);
 
                         JSONArray cons = new JSONArray();
                         cons.add(httpNode.get("id"));
-                        JSONArray wires = new JSONArray();
-                        wires.add(cons);
-                        nullNode.put("wires", wires);
+                        nullNode.put("wires", cons);
                         nodeREDModel.add(nullNode);
 
                         nodeREDModel.add(httpNode);
@@ -180,7 +176,7 @@ public class ConditionNodeMapper {
 
                 if (debug) {
                     // also connect to a debug node
-                    JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500", situationTemplate.getId());
+                    JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500");
                     debugNode.put("name", node.getName().isEmpty() ? node.getOpType() : node.getName());
                     debugNode.put("console", "true");
 
@@ -188,9 +184,7 @@ public class ConditionNodeMapper {
                     connections.add(debugNode.get("id"));
                 }
 
-                wiresNode.add(connections);
-
-                nodeREDNode.put("wires", wiresNode);
+                nodeREDNode.put("wires", connections);
 
                 nodeREDModel.add(nodeREDNode);
                 yCoordinate += 100;

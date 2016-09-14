@@ -14,6 +14,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import situationtemplate.model.TSituationTemplate;
 import utils.IOUtils;
+import utils.NodeREDUtils;
 
 public class Main {
 
@@ -26,6 +27,10 @@ public class Main {
 	 *            2 debug flag
 	 */
 	public static void main(String[] args) {
+		if (args.length >= 2 && args[1].equals("delete")) {
+			NodeREDUtils.deleteFlow(args[0]);
+			return;
+		}
 		try {
 			
 			// connects each node to a corresponding debug node
@@ -106,7 +111,7 @@ public class Main {
 				mapper.map(false, url, timestamp, debug);*/
 			} else {
 				
-				IOUtils.clearNodeRED();
+				//IOUtils.clearNodeRED();
 				
 				ObjectIdSensorIdMapping sensorMapping = new ObjectIdSensorIdMapping(args[0]);
 				

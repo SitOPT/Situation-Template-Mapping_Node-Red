@@ -47,8 +47,6 @@ public class ContextNodeMapper {
 
 		int xCoordinate = 300;
 		int yCoordinate = 50;
-		// the z coordinate is used to assign the nodes to a corresponding sheet
-		String zCoordinate = situationTemplate.getId();
 
 		String url;
 		StringBuilder builder = new StringBuilder();
@@ -69,35 +67,28 @@ public class ContextNodeMapper {
 				sensorURL += "/" + sensorNode.getName();
 			}
 			// create the corresponding NodeRED JSON node
-			ArrayList<JSONObject> nodeREDNodes = new ArrayList<>();
 			String[] objects = sensorMapping.getObjects(sensorNode);
 			for (String object : objects) {
 				String name = sensorNode.getName() == null ? sensorNode.getType() : sensorNode.getName();
 				JSONObject nodeREDNode = NodeREDUtils.createNodeREDNode(
-						situationTemplate.getId() + "." + sensorNode.getId() + object,
+						object + "." + situationTemplate.getName() + "." + sensorNode.getName(),
 						name + " for " + object, TYPE, Integer.toString(xCoordinate),
-						Integer.toString(yCoordinate), zCoordinate);
+						Integer.toString(yCoordinate));
 				nodeREDNode.put("method", METHOD);
 				if (sensorNode.getInputType().toLowerCase().equals("static")) {
 					nodeREDNode.put("url", sensorNode.getMeasureName() + "/rmp/sensordata/" + sensorNode.getType() + "/" + sensorNode.getName());
 				} else if (sensorNode.getInputType().toLowerCase().equals("sensor")) {
 					nodeREDNode.put("url", String.format(sensorURL, object));
 				}
-				nodeREDNodes.add(nodeREDNode);
 				yCoordinate += 100;
 
-				if (sensorNode.getInputType().toLowerCase().equals("static")) {
-
-				}
-
 				// now connect the node to the flow
-				JSONArray wiresNode = new JSONArray();
 				JSONArray connections = new JSONArray();
 
 				if (debug) {
 					// map the sensor node to a debug node
 					// TODO X/Y coordinates
-					JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500", zCoordinate);
+					JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500");
 					debugNode.put("name", sensorNode.getName().isEmpty() ? sensorNode.getType() : sensorNode.getName());
 					debugNode.put("console", "true");
 					nodeREDModel.add(debugNode);
@@ -106,16 +97,15 @@ public class ContextNodeMapper {
 				// connect to the parents
 				for (TParent parent : sensorNode.getParent()) {
 					if (parent.getParentID() instanceof TConditionNode) {
-						connections.add(situationTemplate.getId() + "."
-								+ ((TConditionNode) parent.getParentID()).getId() + object);
+						connections.add(object + "." + situationTemplate.getName() + "."
+								+ ((TConditionNode) parent.getParentID()).getName());
 					} else if (parent.getParentID() instanceof TOperationNode) {
-						connections.add(situationTemplate.getId() + "."
-								+ ((TOperationNode) parent.getParentID()).getId() + object);
+						connections.add(object + "." + situationTemplate.getName() + "."
+								+ ((TOperationNode) parent.getParentID()).getName());
 					}
 				}
 
-				wiresNode.add(connections);
-				nodeREDNode.put("wires", wiresNode);
+				nodeREDNode.put("wires", connections);
 				nodeREDModel.add(nodeREDNode);
 			}
 

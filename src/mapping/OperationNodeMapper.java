@@ -41,9 +41,6 @@ public class OperationNodeMapper {
         int xCoordinate = 900;
         int yCoordinate = 50;
 
-        // the z coordinate is used to assign the nodes to a corresponding sheet
-        String zCoordinate = situationTemplate.getId();
-
         // get the number of children of the operation node
         int children = 0;
         for (TOperationNode logicNode : situationTemplate.getOperationNode()) {
@@ -72,9 +69,8 @@ public class OperationNodeMapper {
             }
 
             // create the comparison node in NodeRED
-            JSONObject nodeREDNode = NodeREDUtils.createNodeREDNode(situationTemplate.getId() + "." + logicNode.getId(),
-                    logicNode.getName(), "function", Integer.toString(xCoordinate), Integer.toString(yCoordinate),
-                    zCoordinate);
+            JSONObject nodeREDNode = NodeREDUtils.createNodeREDNode(sensorMapping.getObjects() + "." + situationTemplate.getName() + "." + logicNode.getName(),
+                    logicNode.getName(), "function", Integer.toString(xCoordinate), Integer.toString(yCoordinate));
             Method m;
             ArrayList<String> parentIds = new ArrayList<>();
             parentIds.add(logicNode.getId());
@@ -85,12 +81,10 @@ public class OperationNodeMapper {
                     if (parent.getParentID() instanceof TSituationNode) {
                         if (parentIds.contains(((TSituationNode) parent.getParentID()).getId())) {
                             parentIds.add(node.getId());
-                            continue;
                         }
                     } else {
                         if (parentIds.contains(((TOperationNode) parent.getParentID()).getId())) {
                             parentIds.add(node.getId());
-                            continue;
                         }
                     }
                 }
@@ -99,7 +93,6 @@ public class OperationNodeMapper {
                 for (TParent parent : node.getParent()) {
                     if (parentIds.contains(((TOperationNode) parent.getParentID()).getId())) {
                         parentIds.add(node.getId());
-                        continue;
                     }
                 }
             }
@@ -107,7 +100,6 @@ public class OperationNodeMapper {
                 for (TParent parent : node.getParent()) {
                     if (parentIds.contains(((TConditionNode) parent.getParentID()).getId())) {
                         sensors.add(node);
-                        continue;
                     }
                 }
             }
@@ -132,7 +124,6 @@ public class OperationNodeMapper {
             }
 
             // connect it to the parent(s)
-            JSONArray wiresNode = new JSONArray();
             JSONArray connections = new JSONArray();
 
             if (!logicNode.getParent().isEmpty()) {
@@ -145,13 +136,13 @@ public class OperationNodeMapper {
                         connections.add(situationTemplate.getId() + "." + parentId);
                     } else if (parent.getParentID() instanceof TSituationNode) {
 
-                        JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500", zCoordinate);
-                        debugNode.put("name", situationTemplate.getName());
+                        JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500");
+                        debugNode.put("name", sensorMapping.getObjects() + "." + situationTemplate.getName());
                         nodeREDModel.add(debugNode);
 
                         // create the corresponding NodeRED JSON node
                         JSONObject httpNode = NodeREDUtils.createNodeREDNode(NodeREDUtils.generateNodeREDId(),
-                                    "situation", "http request", Integer.toString(200), Integer.toString(200), zCoordinate);
+                                    "situation", "http request", Integer.toString(200), Integer.toString(200));
                         httpNode.put("method", "POST");
 
                         StringBuilder builder = new StringBuilder();
@@ -168,10 +159,8 @@ public class OperationNodeMapper {
                         httpNode.put("url", builder.toString());
 
                         JSONArray httpConn = new JSONArray();
-                        JSONArray httpWires = new JSONArray();
                         httpConn.add(debugNode.get("id"));
-                        httpWires.add(httpConn);
-                        httpNode.put("wires", httpWires);
+                        httpNode.put("wires", httpConn);
 
                         connections.add(httpNode.get("id"));
 
@@ -179,15 +168,14 @@ public class OperationNodeMapper {
                     }
                 }
             } else {
-                JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500", zCoordinate);
+                JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500");
                 debugNode.put("name", situationTemplate.getName());
                 nodeREDModel.add(debugNode);
                 connections.add(debugNode.get("id"));
             }
                         
             nodeREDNode.put("outputs", String.valueOf(1));
-            wiresNode.add(connections);
-            nodeREDNode.put("wires", wiresNode);
+            nodeREDNode.put("wires", connections);
             nodeREDModel.add(nodeREDNode);
 
             yCoordinate += 100;

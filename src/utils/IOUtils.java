@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -15,11 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import mapping.ObjectIdSensorIdMapping;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
+import org.json.simple.parser.ParseException;
 import situationtemplate.model.TSituationTemplate;
 
 import com.google.gson.Gson;
@@ -133,63 +136,35 @@ public class IOUtils {
 	 * 			 boolean determining whether the flow shall be overwritten or not
 	 */
 	@SuppressWarnings("unchecked")
-	public static void deployToNodeRED(JSONArray nodeREDModel, TSituationTemplate situationTemplate, boolean doOverwrite) {
+	public static String deployToNodeRED(JSONObject nodeREDModel, TSituationTemplate situationTemplate, ObjectIdSensorIdMapping sensorMapping, boolean doOverwrite) {
 		try {
 			Properties prop = new Properties();
-			
+
 			String server = "localhost";
 			String protocol = "http";
 			String port = "1880";
-			
+
 			try (InputStream input = new FileInputStream("settings.properties")) {
 				prop.load(input);
 				server = prop.getProperty("server");
 				protocol = prop.getProperty("protocol");
 				port = prop.getProperty("port");
 			} catch (Exception e) {
-			    e.printStackTrace();
+				e.printStackTrace();
 			}
-					
-			JSONArray flow;
-			
-			if (doOverwrite) {
-				flow = new JSONArray();
-			} else {
-				String currentFlows = getHTML(String.format("%s://%s:%s/flows", protocol, server, port));
-				JSONParser parser = new JSONParser();
-				flow = new JSONArray();//(JSONArray) parser.parse(currentFlows);
-				
-				List<JSONObject> toBeRemoved = new ArrayList<>();
 
-				for (int i = 0; i < flow.size(); i++) {
-					JSONObject flowElement = (JSONObject) flow.get(i);
-					
-					String id = (String) flowElement.get("id");
-					String z = (String) flowElement.get("z");
-					if (id != null && id.equals(situationTemplate.getId()) || (z != null && z.equals(situationTemplate.getId()))) {
-						// this template already exists, delete it and replace it with the generated one
-						toBeRemoved.add(flowElement);
-					}
-				}
-				for (JSONObject remove: toBeRemoved) {
-					flow.remove(remove);
-				}
+			String id = sensorMapping.getObjects() + "." + situationTemplate.getName();
+
+			String put = hasFlow(String.format("%s://%s:%s/flows", protocol, server, port), sensorMapping.getObjects(), situationTemplate.getName());
+			if (put != null && doOverwrite) {
+				put = "";
+				delete(String.format("%s://%s:%s/flow/%s", protocol, server, port, id));
 			}
-			
-			JSONObject sheet = new JSONObject();
 
-			// TODO create constant for tab
-			sheet.put("type", "tab");
-			sheet.put("id", situationTemplate.getId());
-			sheet.put("label", situationTemplate.getId() + ": "	+ situationTemplate.getName());
+			nodeREDModel.put("id", id);
+			nodeREDModel.put("label", sensorMapping.getObjects() + "/" + situationTemplate.getName());
+			nodeREDModel.put("configs", new JSONArray());
 
-			// add the sheet definition and all other components to the node red flow
-			flow.add(sheet);
-
-			for (int i = 0; i < nodeREDModel.size(); i++) {
-				flow.add(nodeREDModel.get(i));
-			}
-			
 			// pretty print json
 //			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 //			String json = gson.toJson(flow);
@@ -203,12 +178,16 @@ public class IOUtils {
 			// contentType: "application/json; charset=utf-8"
 			// });
 
-			String body = flow.toJSONString();
-
-			URL url = new URL(String.format("%s://%s:%s/flows", protocol, server, port));
+			String body = nodeREDModel.toJSONString();
+			System.out.println(nodeREDModel.toJSONString());
+			URL url;
+			if (put != null) {
+				url = new URL(String.format("%s://%s:%s/flow/%s", protocol, server, port, put));
+			} else {
+				url = new URL(String.format("%s://%s:%s/flow", protocol, server, port));
+			}
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			System.out.println(url.getProtocol() + " " + url.getHost() + " " + url.getHost() + " " + url.getPath());
-			connection.setRequestMethod("POST");
+			connection.setRequestMethod(put != null ? "PUT" : "POST");
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
 			connection.setUseCaches(false);
@@ -223,14 +202,28 @@ public class IOUtils {
 
 			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
+			JSONObject obj = (JSONObject) new JSONParser().parse(reader);
+
 			writer.close();
 			reader.close();
+			return (String) obj.get("id");
 
-		} catch (IOException e) {
-			System.err.println("Could not process HTTP request.");
-			e.printStackTrace();
-		} catch (/*Parse*/Exception e) {
-			System.err.println("Could not parse JSON.");
+		} catch (IOException | ParseException e1) {
+			e1.printStackTrace();
+		}
+		return "";
+	}
+
+	private static void delete(String urlToRead) {
+		URL url;
+		HttpURLConnection conn;
+		try {
+			url = new URL(urlToRead);
+			conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestMethod("DELETE");
+			conn.setRequestProperty("Content-Type", "application/json");
+			conn.connect();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -242,28 +235,26 @@ public class IOUtils {
 	 * 				 the url of Node-RED
 	 * @return the current flow
 	 */
-	public static String getHTML(String urlToRead) {
+	public static String hasFlow(String urlToRead, String object, String templateName) {
 		URL url;
 		HttpURLConnection conn;
-		BufferedReader rd;
-		String line;
-		String result = "";
 		try {
 			url = new URL(urlToRead);
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
 			conn.setRequestProperty("Content-Type", "application/json");
-			rd = new BufferedReader(
-					new InputStreamReader(conn.getInputStream()));
-			while ((line = rd.readLine()) != null) {
-				result += line;
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+				JSONArray array = (JSONArray) new JSONParser().parse(reader);
+				for (Object o : array) {
+					JSONObject obj = (JSONObject) o;
+					if (obj.get("label") != null && obj.get("label").equals(object + "/" + templateName)) {
+						return (String) obj.get("id");
+					}
+				}
 			}
-			rd.close();
-		} catch (IOException e) {
-			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return result;
+		return null;
 	}
 }

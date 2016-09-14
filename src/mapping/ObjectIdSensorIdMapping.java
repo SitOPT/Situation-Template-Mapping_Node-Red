@@ -121,7 +121,7 @@ public class ObjectIdSensorIdMapping {
             builder.setLength(builder.length() - 2);
             return "";
         }
-        return "";
+        return object;
     }
 
 }
