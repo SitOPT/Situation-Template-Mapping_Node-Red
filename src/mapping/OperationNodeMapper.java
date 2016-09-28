@@ -98,7 +98,7 @@ public class OperationNodeMapper {
             }
             for (TContextNode node : situationTemplate.getContextNode()) {
                 for (TParent parent : node.getParent()) {
-                    if (parentIds.contains(((TConditionNode) parent.getParentID()).getId())) {
+                    if (parent.getParentID() instanceof TConditionNode && parentIds.contains(((TConditionNode) parent.getParentID()).getId())) {
                         sensors.add(node);
                     }
                 }
@@ -129,11 +129,11 @@ public class OperationNodeMapper {
             if (!logicNode.getParent().isEmpty()) {
                 for (TParent parent : logicNode.getParent()) {
                     if (parent.getParentID() instanceof TConditionNode) {
-                        String parentId = ((TConditionNode) parent.getParentID()).getId();
-                        connections.add(situationTemplate.getId() + "." + parentId);
+                        String parentId = ((TConditionNode) parent.getParentID()).getName();
+                        connections.add(sensorMapping.getObjects() + "." + situationTemplate.getName() + "." + parentId);
                     } else if (parent.getParentID() instanceof TOperationNode) {
-                        String parentId = ((TOperationNode) parent.getParentID()).getId();
-                        connections.add(situationTemplate.getId() + "." + parentId);
+                        String parentId = ((TOperationNode) parent.getParentID()).getName();
+                        connections.add(sensorMapping.getObjects() + "." + situationTemplate.getName() + "." + parentId);
                     } else if (parent.getParentID() instanceof TSituationNode) {
 
                         JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500");

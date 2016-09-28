@@ -111,7 +111,7 @@ public class NodeREDUtils {
 
         // TODO
         for (TContextNode sensorNode : situationTemplate.getContextNode()) {
-            connections.add(sensorMapping.getObjects() + "." + situationTemplate.getId() + "." + sensorNode.getName());
+            connections.add(sensorMapping.getObjects() + "." + situationTemplate.getName() + "." + sensorNode.getName());
         }
 
         connections.add(debugNode.get("id"));

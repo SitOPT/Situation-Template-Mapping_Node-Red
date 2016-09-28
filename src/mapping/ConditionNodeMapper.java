@@ -133,11 +133,11 @@ public class ConditionNodeMapper {
                     } else if (parent.getParentID() instanceof TOperationNode) {
                         connections.add(object + "." + situationTemplate.getName() + "." + ((TOperationNode) parent.getParentID()).getName());
                     } else if (parent.getParentID() instanceof TSituationNode) {
-                        JSONObject nullNode = NodeREDUtils.createNodeREDNode(situationTemplate.getName() + ".nullNode", "passthrough", "function", Integer.toString(900), Integer.toString(50));
-                        nullNode.put("func", Nodes.getNULLNode(object, situationTemplate.getId(), sensorMapping));
+                        JSONObject nullNode = NodeREDUtils.createNodeREDNode(object + "." + situationTemplate.getName() + ".nullNode", "passthrough", "function", Integer.toString(900), Integer.toString(50));
+                        nullNode.put("func", Nodes.getNULLNode(object, situationTemplate.getName(), sensorMapping));
                         nullNode.put("outputs", "1");
 
-                        connections.add(situationTemplate.getName() + ".nullNode");
+                        connections.add(object + "." + situationTemplate.getName() + ".nullNode");
 
                         JSONObject debugNode = NodeREDUtils.generateDebugNode("600", "500");
                         debugNode.put("name", situationTemplate.getName());

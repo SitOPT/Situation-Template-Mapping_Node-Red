@@ -3,19 +3,19 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="situation_template_draft01.xsd"
 	name="SystemObservation">
-		<operationNode id="A15" name="hyper combine">
+		<operationNode id="A15" name="hyperCombine">
 			<type>xor</type>
 			<parent parentID="A10"/>
 			<negated>true</negated>
 		</operationNode>
 
-		<operationNode id="A11" name="super combine">
+		<operationNode id="A11" name="superCombine">
 			<type>xor</type>
 			<parent parentID="A15"/>
 			<negated>false</negated>
 		</operationNode>
 
-		<operationNode id="A12" name="combine Sensors2">
+		<operationNode id="A12" name="combineSensors2">
 			<type>or</type>
 			<parent parentID="A11"/>
 			<negated>true</negated>
@@ -23,54 +23,58 @@
 		<conditionNode id="A13" name="MyCondNode">
 			<type>type</type>
 			<opType>lowerThan</opType>
-			<condValue>
+			<condValues>
 				<value>30</value>
-			</condValue>
+			</condValues>
 			<parent parentID="A12"/>
 		</conditionNode>
 		<contextNode id="A14" name="MyContextNode">
 			<parent parentID="A13"/>
+			<inputType>sensor</inputType>
 		</contextNode>
-		<operationNode id="A3" name="combine Sensors">
+		<operationNode id="A3" name="combineSensors">
 			<type>and</type>
 			<parent parentID="A11"/>
 			<negated>true</negated>
 		</operationNode>
-		<conditionNode id="A4" name="% CPU load">
+		<conditionNode id="A4" name="%CPUload">
 			<type>type</type>
 			<measureName>measureName</measureName>
 			<opType>greaterThan</opType>
-			<condValue>
+			<condValues>
 				<value>70</value>
-			</condValue>
+			</condValues>
 			<parent parentID="A3"/>
 		</conditionNode>
-		<conditionNode id="A8" name="MB RAM free">
+		<conditionNode id="A8" name="MBRAMfree">
 			<type>type</type>
 			<measureName>measureName</measureName>
 			<opType>lowerThan</opType>
-			<condValue>
+			<condValues>
 				<value>10</value>
-			</condValue>
+			</condValues>
 			<parent parentID="A3"/>
 		</conditionNode>
 		<conditionNode id="A9" name="StatusCodeChecker">
 			<type>type</type>
 			<measureName>measureName</measureName>
 			<opType>notEquals</opType>
-			<condValue>
+			<condValues>
 				<value>200</value>
-			</condValue>
+			</condValues>
 			<parent parentID="A3"></parent>
 		</conditionNode>
 		<contextNode id="A5" name="memorySensor">
 			<parent parentID="A8"></parent>
+			<inputType>sensor</inputType>
 		</contextNode>
 		<contextNode id="A6" name="cpuSensor">
 			<parent parentID="A4"></parent>
+			<inputType>sensor</inputType>
 		</contextNode>
 		<contextNode id="A7" name ="watchdogSensor">
 			<parent parentID="A9"/>
+			<inputType>sensor</inputType>
 		</contextNode>
 		<situationNode name="machine_failed" id="A10"/>
 </SituationTemplate>
