@@ -101,15 +101,15 @@ public class Nodes {
 					+ "  values.push(context.sensorValues[0]);\n"
 					+ "  returnValue = JSON.parse(msg.payload);\n\n"
 					+ "  if (returnValue) {\n"
-					+ "    var array = [%s];\n"
-					+ "    for (var index in array) {\n"
-					+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':true, 'sensorvalues': values});\n"
-					+ "    }\n"
+					//+ "    var array = [%s];\n"
+					//+ "    for (var index in array) {\n"
+					+ "      situations.push({'thing':'%s', 'name': '%s', 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':true, 'sensorvalues': values});\n"
+					//+ "    }\n"
 					+ "  } else {\n"
-					+ "    var array = [%s];\n"
-					+ "    for (var index in array) {\n"
-					+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':false, 'sensorvalues': values});\n"
-					+ "    }\n"
+					//+ "    var array = [%s];\n"
+					//+ "    for (var index in array) {\n"
+					+ "      situations.push({'thing':'%s', 'name': '%s', 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':false, 'sensorvalues': values});\n"
+					//+ "    }\n"
 					+ "  }\n"
 					+ "  context.values = null;\n"
 					+ "  context.sensorValues = null;\n\n"
@@ -278,7 +278,7 @@ public class Nodes {
 		if (things.equals("")) {
 			things = "\'" + objectID + "\'";
 		}
-		return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, things, situationTemplateID);
+		return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, situationTemplateID, things, situationTemplateID, situationTemplateID);
 	}
 
 	/**
@@ -291,7 +291,7 @@ public class Nodes {
 		if (things.equals("")) {
 			things = "\'" + objectID + "\'";
 		}
-		return String.format(nullNode, things, situationTemplateID, things, situationTemplateID);
+		return String.format(nullNode, things, situationTemplateID, situationTemplateID, things, situationTemplateID, situationTemplateID);
 	}
 	
 	/**
@@ -306,7 +306,7 @@ public class Nodes {
         if (things.equals("")) {
             things = "\'" + objectID + "\'";
         }
-        return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, things, situationTemplateID);
+        return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, situationTemplateID, things, situationTemplateID, situationTemplateID);
 	}
 	
 	/**
@@ -320,7 +320,7 @@ public class Nodes {
         if (things.equals("")) {
             things = '\'' + objectID + '\'';
         }
-        return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, things, situationTemplateID);
+        return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, situationTemplateID, things, situationTemplateID, situationTemplateID);
 	}
 	
 	/**
@@ -348,7 +348,7 @@ public class Nodes {
         if (things.equals("")) {
             things = '\'' + objectID + '\'';
         }
-        return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, things, situationTemplateID);
+        return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, situationTemplateID, things, situationTemplateID, situationTemplateID);
 	}
 	
 	/**
@@ -362,7 +362,7 @@ public class Nodes {
 		if (things.equals("")) {
 		    things = '\'' + objectID + '\'';
 		}
-		return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, things, situationTemplateID);
+		return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, situationTemplateID, things, situationTemplateID, situationTemplateID);
 	}
 	
 	/**
