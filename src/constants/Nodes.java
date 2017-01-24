@@ -10,7 +10,8 @@ import situationtemplate.model.TContextNode;
  * This class offers methods to generate the Node-RED function nodes as JSON
  */
 public class Nodes {
-	private final static String compareString = "var curr = parseInt(JSON.parse(msg.payload).payload.value);\n"
+	private final static String compareString = 
+			"var curr = parseInt(JSON.parse(msg.payload).payload.value);\n"
 	        + "msg.situation = {\n"
 	        + "  'sensor':'%s', 'value':curr,\n"
 			+ "  'timestamp':\"\" + new Date().getTime(),\n"
@@ -23,7 +24,8 @@ public class Nodes {
 			+ "}\n\n"
 			+ "msg.headers = {\"Content-Type\": \"application/json\"};\n"
 			+ "return msg;";
-	private final static String statusCodeString = "var curr = parseInt(JSON.parse(msg.payload).value);\n"
+	private final static String statusCodeString = 
+			"var curr = parseInt(JSON.parse(msg.payload).value);\n"
 	        + "msg.situation = {\n"
 	        + "  'sensor':'%s', 'values':[curr],\n"
 			+ "  'timestamp':\"\" + new Date().getTime(),\n"
@@ -39,7 +41,8 @@ public class Nodes {
 			+ "  return msg;\n"
 			+ "}"
 			+ "\n\nreturn null;";
-	private final static String accumulationString = "context.values = context.values || [];\n"
+	private final static String accumulationString = 
+			"context.values = context.values || [];\n"
 			+ "context.values.push(JSON.parse(msg.payload));\n\n"
 			+ "context.sensorValues = context.sensorValues || [];\n"
 			+ "context.sensorValues.push(msg.situation);\n\n"
@@ -55,15 +58,15 @@ public class Nodes {
 			+ "    %s\n"
 			+ "  }\n\n"
 			+ "  if (returnValue) {\n"
-			+ "    var array = [%s];\n"
-			+ "    for (var index in array) {\n"
-			+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':true, 'sensorvalues': values});\n"
-			+ "    }\n"
+			//+ "    var array = [%s];\n"
+			//+ "    for (var index in array) {\n"
+			+ "      situations.push({'thing':'%s', 'name': '%s', 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':true, 'sensorvalues': values});\n"
+			//+ "    }\n"
 			+ "  } else {\n"
-			+ "    var array = [%s];\n"
-			+ "    for (var index in array) {\n"
-			+ "      situations.push({'thing':array[index], 'name': array[index], 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':false, 'sensorvalues': values});\n"
-			+ "    }\n"
+			//+ "    var array = [%s];\n"
+			//+ "    for (var index in array) {\n"
+			+ "      situations.push({'thing':'%s', 'name': '%s', 'timestamp':\"\" + new Date().getTime(), 'situationtemplate':'%s' , 'occured':false, 'sensorvalues': values});\n"
+			//+ "    }\n"
 			+ "  }\n"
 			+ "  context.values = null;\n"
 			+ "  context.sensorValues = null;\n\n"
@@ -82,6 +85,7 @@ public class Nodes {
 			+ "} else {\n"
 			+ "  return null;\n"
 			+ "}";
+	//numberOfInputs, immediateReturnValue, things, situationTemplateID, things, situationTemplateID);
 	private final static String nullNode =
 					  "context.values = context.values || [];\n"
 					+ "context.values.push(JSON.parse(msg.payload));\n\n"
@@ -330,7 +334,7 @@ public class Nodes {
         if (things.equals("")) {
             things = '\'' + objectID + '\'';
         }
-        return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, things, situationTemplateID);
+        return String.format(accumulationString, numberOfInputs, immediateReturnValue, things, situationTemplateID, situationTemplateID, things, situationTemplateID, situationTemplateID);
 	}
 	
 	/**
